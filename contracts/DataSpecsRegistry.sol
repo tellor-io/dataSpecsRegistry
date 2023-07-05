@@ -4,20 +4,28 @@ pragma solidity 0.8.3;
 import "usingtellor/contracts/UsingTellor.sol";
 import "./interfaces/ITellorMaster.sol";
 
-contract DataSpecsRegistry is UsingTellor {
+/**
+ @author Tellor Inc.
+ @title DataSpecsRegistry
+ @dev This is a registry for Tellor oracle data specifications. It allows users to register 
+* a query type name and manage a data specs document by setting its IPFS hash. Registration
+* fees are paid in TRB and are calculated based on the current price of TRB in USD. 
+*/
 
+contract DataSpecsRegistry is UsingTellor {
     ITellorMaster public token; // TRB token used for registration fee, also TellorMaster contract
     address public feeRecipient; // recipient of registration fees
-    bytes32 public trbPriceQueryId = keccak256(abi.encode("SpotPrice", abi.encode("trb", "usd"))); // used for fee calculated
-    uint256 public lastSavedTrbPrice; // last saved price of TRB in USD
-    uint256 public registrationPricePerYearUSD = 5e18; // fee paid for 1 year spec registration in USD
-    uint256 public registrationPricePerInifinityUSD = 100e18; // fee paid for infinite time spec registration in USD (SHOULD THIS BE REMOVED?)
+    bytes32 public constant trbPriceQueryId =
+        keccak256(abi.encode("SpotPrice", abi.encode("trb", "usd"))); // used for fee calculated
+    uint256 public lastSavedTrbPrice = 15e18; // last saved price of TRB in USD
+    uint256 public registrationPricePerYearUSD; // fee paid for 1 year spec registration in USD
+    uint256 public registrationPricePerInifinityUSD; // fee paid for infinite time spec registration in USD (SHOULD THIS BE REMOVED?)
 
     mapping(string => Spec) public specs; // mapping (queryType string => Spec)
     string[] public allRegisteredQueryTypes; // record of every query type ever registered
-    
+
     struct Spec {
-        address admin; // sets the manager and admin addresses
+        address owner; // sets the manager and owner addresses
         address manager; // sets the document hash and lock time
         string documentHash; // IPFS hash of data specs document (ex: ipfs://bafybeicy7cimfgrmwvxwyzxm7xttrbwvqz7vaglutc3tn7wfogoinv5ar4)
         uint256 expirationTime; // timestamp when spec registration expires
@@ -25,9 +33,36 @@ contract DataSpecsRegistry is UsingTellor {
         bool registered; // registered at some point in time
     }
 
-    constructor(address _tellorMaster, address payable _tellor, address _feeRecipient, address _reservedAdmin) UsingTellor(_tellor) {
+    // Functions
+    /**
+     * @dev Initializes system parameters
+     * @param _tellorMaster tellor master and token address
+     * @param _tellor oracle address
+     * @param _feeRecipient address which receives all fees collected by this contract
+     * @param _reservedOwner address which owns all reserved query types
+     * @param _registrationPricePerYearUSD fee paid for 1 year spec registration in USD
+     */
+    constructor(
+        address _tellorMaster,
+        address payable _tellor,
+        address _feeRecipient,
+        address _reservedOwner,
+        uint256 _registrationPricePerYearUSD
+    ) UsingTellor(_tellor) {
+        require(
+            _tellorMaster != address(0),
+            "Tellor master address cannot be zero"
+        );
+        require(_tellor != address(0), "Tellor oracle address cannot be zero");
+        require(
+            _feeRecipient != address(0),
+            "Fee recipient address cannot be zero"
+        );
+
         token = ITellorMaster(_tellorMaster);
         feeRecipient = _feeRecipient;
+        registrationPricePerYearUSD = _registrationPricePerYearUSD;
+        registrationPricePerInifinityUSD = _registrationPricePerYearUSD * 20;
 
         string[27] memory _reservedQueries = [
             "AmpleforthCustomSpotPrice",
@@ -59,49 +94,54 @@ contract DataSpecsRegistry is UsingTellor {
             "TwitterContestV1"
         ];
 
-        for(uint256 _i = 0; _i<_reservedQueries.length; _i++) {
+        for (uint256 _i = 0; _i < _reservedQueries.length; _i++) {
             Spec storage _spec = specs[_reservedQueries[_i]];
-            _spec.admin = _reservedAdmin;
-            _spec.manager = _reservedAdmin;
+            _spec.owner = _reservedOwner;
+            _spec.manager = _reservedOwner;
             _spec.expirationTime = type(uint256).max;
             _spec.registered = true;
             allRegisteredQueryTypes.push(_reservedQueries[_i]);
         }
     }
 
-    function extendRegistration(string calldata _queryType, uint256 _amount) public {
+    /**
+     * @dev Extends an existing registration
+     * @param _queryType query type string identifier
+     * @param _amount amount of TRB to pay for extended registration, USD value determines length of extension
+     */
+    function extendRegistration(
+        string calldata _queryType,
+        uint256 _amount
+    ) public {
         Spec storage _spec = specs[_queryType];
-        require(_spec.expirationTime > block.timestamp, "Query type not registered");
+        require(
+            _spec.expirationTime > block.timestamp,
+            "Query type not registered"
+        );
         uint256 _amountInUSD = _getAmountInUSD(_amount);
-        if(_amountInUSD >= registrationPricePerInifinityUSD) {
+        if (_amountInUSD >= registrationPricePerInifinityUSD) {
             _spec.expirationTime = type(uint256).max;
         } else {
-            _spec.expirationTime += _amountInUSD * 31536000 / registrationPricePerYearUSD;
+            _spec.expirationTime +=
+                (_amountInUSD * 31536000) /
+                registrationPricePerYearUSD;
         }
     }
 
-    function register(string calldata _queryType, uint256 _amount) public {
+    /**
+     * @dev Prevents a document hash from being changed for a given amount of time
+     * @param _queryType query type string identifier
+     * @param _seconds number of seconds to lock document hash
+     */
+    function lockDocumentHash(
+        string calldata _queryType,
+        uint256 _seconds
+    ) public {
         Spec storage _spec = specs[_queryType];
-        require(_spec.expirationTime < block.timestamp, "Query type registered");
-        uint256 _amountInUSD = _getAmountInUSD(_amount);
-        require(_amountInUSD >= registrationPricePerYearUSD, "Must register for at least one year");
-        require(token.transferFrom(msg.sender, feeRecipient, _amount), "Fee transfer failed");
-        if(_amountInUSD >= registrationPricePerInifinityUSD) {
-            _spec.expirationTime = type(uint256).max;
-        } else {
-            _spec.expirationTime = block.timestamp + _amountInUSD * 31536000 / registrationPricePerYearUSD;
-        }
-        _spec.admin = msg.sender;
-        _spec.manager = msg.sender;
-        if(!_spec.registered) {
-            allRegisteredQueryTypes.push(_queryType);
-            _spec.registered = true;
-        }
-    }    
-
-     function lockDocumentHash(string calldata _queryType, uint256 _seconds) public {
-        Spec storage _spec = specs[_queryType];
-        require(msg.sender == _spec.manager, "Only manager can lock document hash");
+        require(
+            msg.sender == _spec.manager,
+            "Only manager can lock document hash"
+        );
         require(block.timestamp < _spec.expirationTime, "Registration expired");
         uint256 _newLockTime;
         if (_spec.lockTime < block.timestamp) {
@@ -110,65 +150,193 @@ contract DataSpecsRegistry is UsingTellor {
             _newLockTime = _spec.lockTime + _seconds;
         }
 
-        require(_newLockTime < _spec.expirationTime, "Cannot lock beyond expiration date");
+        require(
+            _newLockTime < _spec.expirationTime,
+            "Cannot lock beyond expiration date"
+        );
         _spec.lockTime = _newLockTime;
     }
 
-    function setAdminAddress(string calldata _queryType, address _admin) public {
+    /**
+     * @dev Registers a new query type
+     * @param _queryType query type string identifier
+     * @param _amount amount of TRB to pay for registration, USD value determines length of registration
+     * @notice a minimum of 1 year registration is required
+     */
+    function register(string calldata _queryType, uint256 _amount) public {
         Spec storage _spec = specs[_queryType];
-        require(msg.sender == _spec.admin, "Only admin can change manager address");
-        require(block.timestamp < _spec.expirationTime, "Registration expired");
-        _spec.admin = _admin;
+        require(
+            _spec.expirationTime < block.timestamp,
+            "Query type registered"
+        );
+        uint256 _amountInUSD = _getAmountInUSD(_amount);
+        require(
+            _amountInUSD >= registrationPricePerYearUSD,
+            "Must register for at least one year"
+        );
+        require(
+            token.transferFrom(msg.sender, feeRecipient, _amount),
+            "Fee transfer failed"
+        );
+        if (_amountInUSD >= registrationPricePerInifinityUSD) {
+            _spec.expirationTime = type(uint256).max;
+        } else {
+            _spec.expirationTime =
+                block.timestamp +
+                (_amountInUSD * 31536000) /
+                registrationPricePerYearUSD;
+        }
+        _spec.owner = msg.sender;
+        _spec.manager = msg.sender;
+        if (!_spec.registered) {
+            allRegisteredQueryTypes.push(_queryType);
+            _spec.registered = true;
+        }
     }
 
-    function setDocumentHash(string calldata _queryType, string calldata _documentHash) public {
+    /**
+     * @dev Sets a document hash
+     * @param _queryType query type string identifier
+     * @param _documentHash data specs document hash (IPFS hash), ex: ipfs://Qm...
+     */
+    function setDocumentHash(
+        string calldata _queryType,
+        string calldata _documentHash
+    ) public {
         Spec storage _spec = specs[_queryType];
-        require(msg.sender == _spec.manager, "Only spec manager can set content record");
+        require(
+            msg.sender == _spec.manager,
+            "Only spec manager can set content record"
+        );
         require(block.timestamp < _spec.expirationTime, "Registration expired");
         require(block.timestamp > _spec.lockTime, "Data spec document locked");
         _spec.documentHash = _documentHash;
     }
 
-    function setManagerAddress(string calldata _queryType, address _manager) public {
+    /**
+     * @dev Sets a manager address
+     * @param _queryType query type string identifier
+     * @param _manager new manager address
+     */
+    function setManagerAddress(
+        string calldata _queryType,
+        address _manager
+    ) public {
         Spec storage _spec = specs[_queryType];
-        require(msg.sender == _spec.admin, "Only admin can change manager address");
+        require(
+            msg.sender == _spec.owner,
+            "Only admin can change manager address"
+        );
         require(block.timestamp < _spec.expirationTime, "Registration expired");
         _spec.manager = _manager;
     }
 
+    /**
+     * @dev Sets a new owner address
+     * @param _queryType query type string identifier
+     * @param _newOwner new owner address
+     */
+    function setOwnerAddress(
+        string calldata _queryType,
+        address _newOwner
+    ) public {
+        Spec storage _spec = specs[_queryType];
+        require(
+            msg.sender == _spec.owner,
+            "Only owner can change owner address"
+        );
+        require(block.timestamp < _spec.expirationTime, "Registration expired");
+        _spec.owner = _newOwner;
+    }
+
+    /**
+     * @dev Sets a new Tellor oracle address by reading from Tellor Master's storage
+     */
     function updateTellorAddress() public {
         tellor = ITellor(token.getAddressVars(keccak256("_ORACLE_CONTRACT")));
     }
 
     // Getters
-    function getRegistration(string calldata _queryType) external view returns(Spec memory) {
-        return specs[_queryType];
-    }
-
-    function getAllRegisteredQueryTypes() external view returns(string[] memory) {
+    /**
+     * @dev Returns an array of all registered query type name strings
+     * @return string[] array of all registered query type name strings
+     * @notice this function returns all registered query types, including expired ones
+     */
+    function getAllRegisteredQueryTypes()
+        external
+        view
+        returns (string[] memory)
+    {
         return allRegisteredQueryTypes;
     }
 
-    function getRegisteredQueryTypeByIndex(uint256 _index) external view returns(string memory) {
+    /**
+     * @dev Returns the registration cost per year in TRB
+     * @return uint256 cost per year in TRB
+     */
+    function getCostPerYearInTRB() external view returns (uint256) {
+        (
+            bytes memory _trbPriceBytes,
+            uint256 _timestampRetrieved
+        ) = getDataBefore(trbPriceQueryId, block.timestamp - 12 hours);
+        uint256 _trbPrice;
+        if (_timestampRetrieved > 0) {
+            _trbPrice = abi.decode(_trbPriceBytes, (uint256));
+        } else {
+            _trbPrice = lastSavedTrbPrice;
+        }
+        return (registrationPricePerYearUSD * 1e18) / _trbPrice;
+    }
+
+    /**
+     * @dev Returns the query type name by index
+     * @param _index index in allRegisteredQueryTypes array
+     * @return string query type name
+     */
+    function getRegisteredQueryTypeByIndex(
+        uint256 _index
+    ) external view returns (string memory) {
         return allRegisteredQueryTypes[_index];
     }
 
-    function getRegisteredQueryTypeCount() external view returns(uint256) {
+    /**
+     * @dev Returns the number of unique query type names ever registered
+     * @return uint256 number of registered query types
+     */
+    function getRegisteredQueryTypeCount() external view returns (uint256) {
         return allRegisteredQueryTypes.length;
     }
 
+    /**
+     * @dev Returns the registration info for a given query type
+     * @param _queryType query type string identifier
+     * @return Spec struct
+     */
+    function getRegistration(
+        string calldata _queryType
+    ) external view returns (Spec memory) {
+        return specs[_queryType];
+    }
+
     // Internal functions
-    function _getAmountInUSD(uint256 _amount) internal returns(uint256) {
-        (bytes memory _trbPriceBytes, uint256 _timestampRetrieved) = getDataBefore(trbPriceQueryId, block.timestamp - 12 hours);
+    /**
+     * @dev Returns the USD value of a given amount of TRB
+     * @param _amount amount of TRB
+     * @return uint256 USD value of TRB
+     */
+    function _getAmountInUSD(uint256 _amount) internal returns (uint256) {
+        (
+            bytes memory _trbPriceBytes,
+            uint256 _timestampRetrieved
+        ) = getDataBefore(trbPriceQueryId, block.timestamp - 12 hours);
         uint256 _amountInUsd;
-        if(_timestampRetrieved > 0) {
+        if (_timestampRetrieved > 0) {
             uint256 _trbPrice = abi.decode(_trbPriceBytes, (uint256));
-            _amountInUsd = _amount * _trbPrice / 1e18;
+            _amountInUsd = (_amount * _trbPrice) / 1e18;
             lastSavedTrbPrice = _trbPrice;
-            return _amountInUsd;
         } else {
-            _amountInUsd = _amount * lastSavedTrbPrice / 1e18;
-            return _amountInUsd;
+            _amountInUsd = (_amount * lastSavedTrbPrice) / 1e18;
         }
+        return _amountInUsd;
     }
 }
