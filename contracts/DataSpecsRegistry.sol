@@ -32,6 +32,21 @@ contract DataSpecsRegistry is UsingTellor {
         bool registered; // registered at some point in time
     }
 
+    // Events
+    event DocumentHashUpdated(string _queryType, string _documentHash);
+    event ManagerUpdated(string _queryType, address _manager);
+    event NewRegistration(
+        string _queryType,
+        address _owner,
+        uint256 _expirationTime
+    );
+    event OwnerUpdated(string _queryType, address _owner);
+    event RegistrationExtended(
+        string _queryType,
+        uint256 _expirationTime
+    );
+    event TellorAddressUpdated(address _tellorAddress);
+
     // Functions
     /**
      * @dev Initializes system parameters
@@ -129,6 +144,7 @@ contract DataSpecsRegistry is UsingTellor {
             token.transferFrom(msg.sender, feeRecipient, _amount),
             "Fee transfer failed"
         );
+        emit RegistrationExtended(_queryType, _spec.expirationTime);
     }
 
     /**
@@ -166,6 +182,7 @@ contract DataSpecsRegistry is UsingTellor {
             allRegisteredQueryTypes.push(_queryType);
             _spec.registered = true;
         }
+        emit NewRegistration(_queryType, msg.sender, _spec.expirationTime);
     }
 
     /**
@@ -184,6 +201,7 @@ contract DataSpecsRegistry is UsingTellor {
         );
         require(block.timestamp < _spec.expirationTime, "Registration expired");
         _spec.documentHash = _documentHash;
+        emit DocumentHashUpdated(_queryType, _documentHash);
     }
 
     /**
@@ -202,6 +220,7 @@ contract DataSpecsRegistry is UsingTellor {
         );
         require(block.timestamp < _spec.expirationTime, "Registration expired");
         _spec.manager = _manager;
+        emit ManagerUpdated(_queryType, _manager);
     }
 
     /**
@@ -220,6 +239,7 @@ contract DataSpecsRegistry is UsingTellor {
         );
         require(block.timestamp < _spec.expirationTime, "Registration expired");
         _spec.owner = _newOwner;
+        emit OwnerUpdated(_queryType, _newOwner);
     }
 
     /**
@@ -227,6 +247,7 @@ contract DataSpecsRegistry is UsingTellor {
      */
     function updateTellorAddress() public {
         tellor = ITellor(token.getAddressVars(keccak256("_ORACLE_CONTRACT")));
+        emit TellorAddressUpdated(address(tellor));
     }
 
     // Getters
