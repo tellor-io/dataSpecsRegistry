@@ -35,16 +35,9 @@ contract DataSpecsRegistry is UsingTellor {
     // Events
     event DocumentHashUpdated(string _queryType, string _documentHash);
     event ManagerUpdated(string _queryType, address _manager);
-    event NewRegistration(
-        string _queryType,
-        address _owner,
-        uint256 _expirationTime
-    );
+    event NewRegistration(string _queryType, address _owner, uint256 _expirationTime);
     event OwnerUpdated(string _queryType, address _owner);
-    event RegistrationExtended(
-        string _queryType,
-        uint256 _expirationTime
-    );
+    event RegistrationExtended(string _queryType, uint256 _expirationTime);
     event TellorAddressUpdated(address _tellorAddress);
 
     // Functions
