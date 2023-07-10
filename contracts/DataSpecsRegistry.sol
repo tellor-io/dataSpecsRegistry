@@ -125,6 +125,10 @@ contract DataSpecsRegistry is UsingTellor {
                 (_amountInUSD * 31536000) /
                 registrationPricePerYearUSD;
         }
+        require(
+            token.transferFrom(msg.sender, feeRecipient, _amount),
+            "Fee transfer failed"
+        );
     }
 
     /**
