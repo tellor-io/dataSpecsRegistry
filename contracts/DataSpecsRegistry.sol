@@ -29,7 +29,6 @@ contract DataSpecsRegistry is UsingTellor {
         address manager; // sets the document hash and lock time
         string documentHash; // IPFS hash of data specs document (ex: ipfs://bafybeicy7cimfgrmwvxwyzxm7xttrbwvqz7vaglutc3tn7wfogoinv5ar4)
         uint256 expirationTime; // timestamp when spec registration expires
-        uint256 lockTime; // time before which document hash cannot be updated
         bool registered; // registered at some point in time
     }
 
@@ -129,35 +128,6 @@ contract DataSpecsRegistry is UsingTellor {
     }
 
     /**
-     * @dev Prevents a document hash from being changed for a given amount of time
-     * @param _queryType query type string identifier
-     * @param _seconds number of seconds to lock document hash
-     */
-    function lockDocumentHash(
-        string calldata _queryType,
-        uint256 _seconds
-    ) public {
-        Spec storage _spec = specs[_queryType];
-        require(
-            msg.sender == _spec.manager,
-            "Only manager can lock document hash"
-        );
-        require(block.timestamp < _spec.expirationTime, "Registration expired");
-        uint256 _newLockTime;
-        if (_spec.lockTime < block.timestamp) {
-            _newLockTime = block.timestamp + _seconds;
-        } else {
-            _newLockTime = _spec.lockTime + _seconds;
-        }
-
-        require(
-            _newLockTime < _spec.expirationTime,
-            "Cannot lock beyond expiration date"
-        );
-        _spec.lockTime = _newLockTime;
-    }
-
-    /**
      * @dev Registers a new query type
      * @param _queryType query type string identifier
      * @param _amount amount of TRB to pay for registration, USD value determines length of registration
@@ -209,7 +179,6 @@ contract DataSpecsRegistry is UsingTellor {
             "Only spec manager can set content record"
         );
         require(block.timestamp < _spec.expirationTime, "Registration expired");
-        require(block.timestamp > _spec.lockTime, "Data spec document locked");
         _spec.documentHash = _documentHash;
     }
 
