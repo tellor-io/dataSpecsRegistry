@@ -27,7 +27,7 @@ contract DataSpecsRegistry is UsingTellor {
     struct Spec {
         address owner; // sets the manager and owner addresses
         address manager; // sets the document hash and lock time
-        string documentHash; // IPFS hash of data specs document (ex: ipfs://bafybeicy7cimfgrmwvxwyzxm7xttrbwvqz7vaglutc3tn7wfogoinv5ar4)
+        string documentHash; // IPFS hash of data specs document (ex: ipfs://bafybeic6nwiuutq2fs3wq7qg5t5xcqghg6bnv65atis3aphjtatb26nc5u)
         uint256 expirationTime; // timestamp when spec registration expires
         bool registered; // registered at some point in time
     }
@@ -78,16 +78,22 @@ contract DataSpecsRegistry is UsingTellor {
         registrationPricePerYearUSD = _registrationPricePerYearUSD;
         registrationPricePerInifinityUSD = _registrationPricePerYearUSD * 20;
 
-        string[27] memory _reservedQueries = [
+        string[35] memory _reservedQueries = [
             "AmpleforthCustomSpotPrice",
             "AmpleforthUSPCE",
             "AutopayAddresses",
             "ChatGPTResponse",
             "ComboQuery",
             "CrossChainBalance",
+            "Custom1",
+            "Custom2",
+            "Custom3",
+            "CustomPrice",
             "DIVAProtocol",
             "DailyVolatility",
             "EVMCall",
+            "EVMHeader",
+            "EVMHeaderslist",
             "ExampleFantasyFootball",
             "ExampleNftCollectionStats",
             "FilecoinDealStatus",
@@ -96,6 +102,8 @@ contract DataSpecsRegistry is UsingTellor {
             "LegacyRequest",
             "LendingPairToxicity",
             "MimicryCollectionStat",
+            "MimicryMacroMarketMashup",
+            "MimicryNFTMarketIndex",
             "Morphware",
             "NumericApiResponse",
             "Snapshot",
