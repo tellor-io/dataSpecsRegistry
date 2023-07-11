@@ -18,32 +18,40 @@ describe("DataSpecsRegistry - Integration Tests", function () {
 	const TRB_QUERY_ID = ethers.utils.keccak256(TRB_QUERY_DATA)
     const reservedQueryStrings = [
         "AmpleforthCustomSpotPrice",
-        "AmpleforthUSPCE",
-        "AutopayAddresses",
-        "ChatGPTResponse",
-        "ComboQuery",
-        "CrossChainBalance",
-        "DIVAProtocol",
-        "DailyVolatility",
-        "EVMCall",
-        "ExampleFantasyFootball",
-        "ExampleNftCollectionStats",
-        "FilecoinDealStatus",
-        "GasPriceOracle",
-        "LeagueDAO",
-        "LegacyRequest",
-        "LendingPairToxicity",
-        "MimicryCollectionStat",
-        "Morphware",
-        "NumericApiResponse",
-        "Snapshot",
-        "SpotPrice",
-        "TWAP",
-        "TellorKpr",
-        "TellorOracleAddress",
-        "TellorRNG",
-        "TracerFinance",
-        "TwitterContestV1"
+            "AmpleforthUSPCE",
+            "AutopayAddresses",
+            "ChatGPTResponse",
+            "ComboQuery",
+            "CrossChainBalance",
+            "Custom1",
+            "Custom2",
+            "Custom3",
+            "CustomPrice",
+            "DIVAProtocol",
+            "DailyVolatility",
+            "EVMCall",
+            "EVMHeader",
+            "EVMHeaderslist",
+            "ExampleFantasyFootball",
+            "ExampleNftCollectionStats",
+            "FilecoinDealStatus",
+            "GasPriceOracle",
+            "LeagueDAO",
+            "LegacyRequest",
+            "LendingPairToxicity",
+            "MimicryCollectionStat",
+            "MimicryMacroMarketMashup",
+            "MimicryNFTMarketIndex",
+            "Morphware",
+            "NumericApiResponse",
+            "Snapshot",
+            "SpotPrice",
+            "TWAP",
+            "TellorKpr",
+            "TellorOracleAddress",
+            "TellorRNG",
+            "TracerFinance",
+            "TwitterContestV1"
     ]
 
 	beforeEach(async function () {
@@ -74,8 +82,6 @@ describe("DataSpecsRegistry - Integration Tests", function () {
         await registry.connect(accounts[2]).setDocumentHash(QUERY_TYPE, DOC_HASH_1)
         // reset doc hash
         await registry.connect(accounts[2]).setDocumentHash(QUERY_TYPE, DOC_HASH_2)
-        // lock doc hash
-        await registry.connect(accounts[2]).lockDocumentHash(QUERY_TYPE, 86400 * 365)
         // extend registration
         await master.faucet(accounts[1].address)
         await master.connect(accounts[1]).approve(registry.address, h.toWei("1000"))
@@ -118,7 +124,6 @@ describe("DataSpecsRegistry - Integration Tests", function () {
         assert.equal(details.manager, accounts[10].address)
         assert.equal(details.documentHash, "bafyabcd")
         assert.equal(details.expirationTime, BigInt(ethers.constants.MaxUint256))
-        assert.equal(details.lockTime, 0)
         assert.equal(details.registered, true)
     });
 
