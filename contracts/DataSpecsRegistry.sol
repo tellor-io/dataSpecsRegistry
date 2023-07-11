@@ -27,11 +27,18 @@ contract DataSpecsRegistry is UsingTellor {
     struct Spec {
         address owner; // sets the manager and owner addresses
         address manager; // sets the document hash and lock time
-        string documentHash; // IPFS hash of data specs document (ex: ipfs://bafybeicy7cimfgrmwvxwyzxm7xttrbwvqz7vaglutc3tn7wfogoinv5ar4)
+        string documentHash; // IPFS hash of data specs document (ex: ipfs://bafybeic6nwiuutq2fs3wq7qg5t5xcqghg6bnv65atis3aphjtatb26nc5u)
         uint256 expirationTime; // timestamp when spec registration expires
-        uint256 lockTime; // time before which document hash cannot be updated
         bool registered; // registered at some point in time
     }
+
+    // Events
+    event DocumentHashUpdated(string _queryType, string _documentHash);
+    event ManagerUpdated(string _queryType, address _manager);
+    event NewRegistration(string _queryType, address _owner, uint256 _expirationTime);
+    event OwnerUpdated(string _queryType, address _owner);
+    event RegistrationExtended(string _queryType, uint256 _expirationTime);
+    event TellorAddressUpdated(address _tellorAddress);
 
     // Functions
     /**
@@ -64,16 +71,22 @@ contract DataSpecsRegistry is UsingTellor {
         registrationPricePerYearUSD = _registrationPricePerYearUSD;
         registrationPricePerInifinityUSD = _registrationPricePerYearUSD * 20;
 
-        string[27] memory _reservedQueries = [
+        string[35] memory _reservedQueries = [
             "AmpleforthCustomSpotPrice",
             "AmpleforthUSPCE",
             "AutopayAddresses",
             "ChatGPTResponse",
             "ComboQuery",
             "CrossChainBalance",
+            "Custom1",
+            "Custom2",
+            "Custom3",
+            "CustomPrice",
             "DIVAProtocol",
             "DailyVolatility",
             "EVMCall",
+            "EVMHeader",
+            "EVMHeaderslist",
             "ExampleFantasyFootball",
             "ExampleNftCollectionStats",
             "FilecoinDealStatus",
@@ -82,6 +95,8 @@ contract DataSpecsRegistry is UsingTellor {
             "LegacyRequest",
             "LendingPairToxicity",
             "MimicryCollectionStat",
+            "MimicryMacroMarketMashup",
+            "MimicryNFTMarketIndex",
             "Morphware",
             "NumericApiResponse",
             "Snapshot",
@@ -126,35 +141,11 @@ contract DataSpecsRegistry is UsingTellor {
                 (_amountInUSD * 31536000) /
                 registrationPricePerYearUSD;
         }
-    }
-
-    /**
-     * @dev Prevents a document hash from being changed for a given amount of time
-     * @param _queryType query type string identifier
-     * @param _seconds number of seconds to lock document hash
-     */
-    function lockDocumentHash(
-        string calldata _queryType,
-        uint256 _seconds
-    ) public {
-        Spec storage _spec = specs[_queryType];
         require(
-            msg.sender == _spec.manager,
-            "Only manager can lock document hash"
+            token.transferFrom(msg.sender, feeRecipient, _amount),
+            "Fee transfer failed"
         );
-        require(block.timestamp < _spec.expirationTime, "Registration expired");
-        uint256 _newLockTime;
-        if (_spec.lockTime < block.timestamp) {
-            _newLockTime = block.timestamp + _seconds;
-        } else {
-            _newLockTime = _spec.lockTime + _seconds;
-        }
-
-        require(
-            _newLockTime < _spec.expirationTime,
-            "Cannot lock beyond expiration date"
-        );
-        _spec.lockTime = _newLockTime;
+        emit RegistrationExtended(_queryType, _spec.expirationTime);
     }
 
     /**
@@ -192,6 +183,7 @@ contract DataSpecsRegistry is UsingTellor {
             allRegisteredQueryTypes.push(_queryType);
             _spec.registered = true;
         }
+        emit NewRegistration(_queryType, msg.sender, _spec.expirationTime);
     }
 
     /**
@@ -209,8 +201,8 @@ contract DataSpecsRegistry is UsingTellor {
             "Only spec manager can set content record"
         );
         require(block.timestamp < _spec.expirationTime, "Registration expired");
-        require(block.timestamp > _spec.lockTime, "Data spec document locked");
         _spec.documentHash = _documentHash;
+        emit DocumentHashUpdated(_queryType, _documentHash);
     }
 
     /**
@@ -229,6 +221,7 @@ contract DataSpecsRegistry is UsingTellor {
         );
         require(block.timestamp < _spec.expirationTime, "Registration expired");
         _spec.manager = _manager;
+        emit ManagerUpdated(_queryType, _manager);
     }
 
     /**
@@ -247,6 +240,7 @@ contract DataSpecsRegistry is UsingTellor {
         );
         require(block.timestamp < _spec.expirationTime, "Registration expired");
         _spec.owner = _newOwner;
+        emit OwnerUpdated(_queryType, _newOwner);
     }
 
     /**
@@ -254,6 +248,7 @@ contract DataSpecsRegistry is UsingTellor {
      */
     function updateTellorAddress() public {
         tellor = ITellor(token.getAddressVars(keccak256("_ORACLE_CONTRACT")));
+        emit TellorAddressUpdated(address(tellor));
     }
 
     // Getters
