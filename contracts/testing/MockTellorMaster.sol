@@ -13,7 +13,7 @@ contract MockTellorMaster is TellorPlayground {
     }
 
     function mockUpdateOracleAddress(address _newOracleAddress) public {
-        bytes32 _oracleAddressKeyHash = keccak256("_ORACLE_ADDRESS");
+        bytes32 _oracleAddressKeyHash = keccak256("_ORACLE_CONTRACT");
         addresses[_oracleAddressKeyHash] = _newOracleAddress;
     }
 }
