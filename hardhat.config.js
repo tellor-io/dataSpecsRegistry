@@ -41,12 +41,12 @@ require("dotenv").config();
     //      gas: 3000000 ,
     //      gasPrice: 300000000000
     //    },
-    sepolia: {
-        url: `${process.env.NODE_URL_SEPOLIA}`,
-        accounts: [process.env.TESTNET_PK],
-        gas: 3000000 ,
-        gasPrice: 300000000000
-      },
+    // sepolia: {
+    //     url: `${process.env.NODE_URL_SEPOLIA}`,
+    //     accounts: [process.env.TESTNET_PK],
+    //     gas: 3000000 ,
+    //     gasPrice: 300000000000
+    //   },
     // polygon: {
     //   url: `${process.env.NODE_URL_MATIC}`,
     //   seeds: [process.env.PRIVATE_KEY],
