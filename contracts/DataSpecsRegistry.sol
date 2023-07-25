@@ -2,7 +2,7 @@
 pragma solidity 0.8.3;
 
 import "usingtellor/contracts/UsingTellor.sol";
-import "./interfaces/ITellorMaster.sol";
+import "./interfaces/IERC20.sol";
 
 /**
  @author Tellor Inc.
@@ -13,7 +13,7 @@ import "./interfaces/ITellorMaster.sol";
 */
 
 contract DataSpecsRegistry is UsingTellor {
-    ITellorMaster public token; // TRB token used for registration fee, also TellorMaster contract
+    IERC20 public token; // TRB token used for registration fee
     address public feeRecipient; // recipient of registration fees
     bytes32 public constant trbPriceQueryId =
         keccak256(abi.encode("SpotPrice", abi.encode("trb", "usd"))); // used for fee calculated
@@ -43,22 +43,22 @@ contract DataSpecsRegistry is UsingTellor {
     // Functions
     /**
      * @dev Initializes system parameters
-     * @param _tellorMaster tellor master and token address
+     * @param _token token address
      * @param _tellor oracle address
      * @param _feeRecipient address which receives all fees collected by this contract
      * @param _reservedOwner address which owns all reserved query types
      * @param _registrationPricePerYearUSD fee paid for 1 year spec registration in USD
      */
     constructor(
-        address _tellorMaster,
+        address _token,
         address payable _tellor,
         address _feeRecipient,
         address _reservedOwner,
         uint256 _registrationPricePerYearUSD
     ) UsingTellor(_tellor) {
         require(
-            _tellorMaster != address(0),
-            "Tellor master address cannot be zero"
+            _token != address(0),
+            "Token address cannot be zero"
         );
         require(_tellor != address(0), "Tellor oracle address cannot be zero");
         require(
@@ -66,7 +66,7 @@ contract DataSpecsRegistry is UsingTellor {
             "Fee recipient address cannot be zero"
         );
 
-        token = ITellorMaster(_tellorMaster);
+        token = IERC20(_token);
         feeRecipient = _feeRecipient;
         registrationPricePerYearUSD = _registrationPricePerYearUSD;
         registrationPricePerInifinityUSD = _registrationPricePerYearUSD * 20;
@@ -241,14 +241,6 @@ contract DataSpecsRegistry is UsingTellor {
         require(block.timestamp < _spec.expirationTime, "Registration expired");
         _spec.owner = _newOwner;
         emit OwnerUpdated(_queryType, _newOwner);
-    }
-
-    /**
-     * @dev Sets a new Tellor oracle address by reading from Tellor Master's storage
-     */
-    function updateTellorAddress() public {
-        tellor = ITellor(token.getAddressVars(keccak256("_ORACLE_CONTRACT")));
-        emit TellorAddressUpdated(address(tellor));
     }
 
     // Getters
