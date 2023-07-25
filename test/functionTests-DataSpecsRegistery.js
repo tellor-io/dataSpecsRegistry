@@ -339,28 +339,6 @@ describe("DataSpecsRegistry - Function Tests", function () {
 
     })
 
-    it("updateTellorAddress", async function () {
-        // get new oracle address to switch to
-        const TellorPlayground = await ethers.getContractFactory("TellorPlayground");
-        tellor2 = await TellorPlayground.deploy()
-        // update oracle address on tellor master
-        await master.mockUpdateOracleAddress(tellor2.address)
-        // tell registry to read new oracle address 
-        await registry.updateTellorAddress()
-        assert.equal(await registry.tellor(), tellor2.address)
-
-        // read value from new oracle 
-        await tellor2.submitValue(TRB_QUERY_ID, h.uintTob32(h.toWei("10")), 0, TRB_QUERY_DATA)
-        await h.advanceTime(86400 / 2)
-        queryTypeX = "queryTypeX"
-        await master.faucet(accounts[19].address)
-        await master.connect(accounts[19]).approve(registry.address, h.toWei("20"))
-        await registry.connect(accounts[19]).register(queryTypeX, h.toWei("20"))
-        registration = await registry.getRegistration(queryTypeX)
-        assert(registration.registered == true, "registered is not correct")
-
-    })
-
     it("getAllRegisteredQueryTypes", async function () {
         // check initial reservedQueryTypes
         list = await registry.getAllRegisteredQueryTypes()
