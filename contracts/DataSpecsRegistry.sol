@@ -71,7 +71,7 @@ contract DataSpecsRegistry is UsingTellor {
         registrationPricePerYearUSD = _registrationPricePerYearUSD;
         registrationPricePerInifinityUSD = _registrationPricePerYearUSD * 20;
 
-        string[35] memory _reservedQueries = [
+        string[37] memory _reservedQueries = [
             "AmpleforthCustomSpotPrice",
             "AmpleforthUSPCE",
             "AutopayAddresses",
@@ -91,6 +91,7 @@ contract DataSpecsRegistry is UsingTellor {
             "ExampleNftCollectionStats",
             "FilecoinDealStatus",
             "GasPriceOracle",
+            "InflationData",
             "LeagueDAO",
             "LegacyRequest",
             "LendingPairToxicity",
@@ -101,6 +102,7 @@ contract DataSpecsRegistry is UsingTellor {
             "NumericApiResponse",
             "Snapshot",
             "SpotPrice",
+            "StringQuery",
             "TWAP",
             "TellorKpr",
             "TellorOracleAddress",
