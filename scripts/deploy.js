@@ -7,10 +7,10 @@ const web3 = require('web3');
 //npx hardhat run scripts/deploy.js --network sepolia
 //npx hardhat run scripts/deploy.js --network mainnet
 
-var tellorMaster = '0x80fc34a2f9FfE86F41580F47368289C402DEc660' // sepolia
-var tellorAddress = '0x199839a4907ABeC8240D119B606C98c405Bb0B33' // sepolia
-var teamMultisigAddress = '0x34Fae97547E990ef0E05e05286c51E4645bf1A85' // sepolia
-var reservedOwner = "0x4d303B4F20d55B9D0eA269B45AB5610abAf53E09" // tim's sepolia address
+var tellorMaster = '0xE3322702BEdaaEd36CdDAb233360B939775ae5f1' // mainnet
+var tellorAddress = '0xD9157453E2668B2fc45b7A803D3FEF3642430cC0' // mainnet
+var teamMultisigAddress = '0xa3fe6d88f2ea92be357663ba9e747301e4cfc39B' // mainnet
+var reservedOwner = "0xa3fe6d88f2ea92be357663ba9e747301e4cfc39B" // multisig address
 var registrationPricePerYear = web3.utils.toWei("1000") // 1000 USD
 
 async function deployRegistry(_network, _pk, _nodeURL, _tellorMaster,  _oracle, _teamMultisig, _reservedOwner, _registrationPricePerYear) {
@@ -28,7 +28,8 @@ async function deployRegistry(_network, _pk, _nodeURL, _tellorMaster,  _oracle, 
     console.log("Starting deployment for DataSpecsRegistry contract...")
     const Registry = await ethers.getContractFactory("contracts/DataSpecsRegistry.sol:DataSpecsRegistry", wallet)
     const registrywithsigner = await Registry.connect(wallet)
-    const registry = await registrywithsigner.deploy(_tellorMaster, _oracle, _teamMultisig, _reservedOwner, _registrationPricePerYear)
+    _feeData = {"gasPrice":100000000000}
+    const registry = await registrywithsigner.deploy(_tellorMaster, _oracle, _teamMultisig, _reservedOwner, _registrationPricePerYear, _feeData)
     await registry.deployed();
 
     if (net == "mainnet"){
@@ -69,7 +70,7 @@ async function deployRegistry(_network, _pk, _nodeURL, _tellorMaster,  _oracle, 
 
 }
 
-deployRegistry("sepolia", process.env.TESTNET_PK, process.env.NODE_URL_SEPOLIA, tellorMaster, tellorAddress, teamMultisigAddress, reservedOwner, registrationPricePerYear)
+deployRegistry("polygon", process.env.MAINNET_PK, process.env.NODE_URL_POLYGON, tellorMaster, tellorAddress, teamMultisigAddress, reservedOwner, registrationPricePerYear)
     .then(() => process.exit(0))
     .catch(error => {
         console.error(error);

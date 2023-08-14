@@ -35,30 +35,30 @@ require("dotenv").config();
       // },
       allowUnlimitedContractSize: true
     },
-    //    mainnet: {
-    //      url: `${process.env.NODE_URL_MAINNET}`,
-    //      seeds: [process.env.PRIVATE_KEY],
-    //      gas: 3000000 ,
-    //      gasPrice: 300000000000
-    //    },
+      //  mainnet: {
+      //    url: `${process.env.NODE_URL_MAINNET}`,
+      //    accounts: [process.env.MAINNET_PK],
+      //    gas: 3000000,
+      //    gasPrice: 35000000000
+      //  },
     // sepolia: {
     //     url: `${process.env.NODE_URL_SEPOLIA}`,
     //     accounts: [process.env.TESTNET_PK],
     //     gas: 3000000 ,
     //     gasPrice: 300000000000
     //   },
-    // polygon: {
-    //   url: `${process.env.NODE_URL_MATIC}`,
-    //   seeds: [process.env.PRIVATE_KEY],
-    //   gas: 2000000 ,
-    //   gasPrice: 250000000000
-    // }
+    polygon: {
+      url: `${process.env.NODE_URL_POLYGON}`,
+      seeds: [process.env.MAINNET_PK],
+      gas: 8000000 ,
+      gasPrice: 150000000000
+    }
   },
   etherscan: {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
     // apiKey: process.env.POLYGONSCAN
-    apiKey: process.env.ETHERSCAN
+    apiKey: process.env.POLYGONSCAN
   },
 
   contractSizer: {
