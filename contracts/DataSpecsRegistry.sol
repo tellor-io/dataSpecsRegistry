@@ -90,7 +90,7 @@ contract DataSpecsRegistry is UsingTellor {
             "ExampleFantasyFootball",
             "ExampleNftCollectionStats",
             "FilecoinDealStatus",
-            "GasPriceOracle",
+            "HistoricalGasPrice",
             "InflationData",
             "LeagueDAO",
             "LegacyRequest",

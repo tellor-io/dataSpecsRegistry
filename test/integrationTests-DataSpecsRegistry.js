@@ -36,6 +36,7 @@ describe("DataSpecsRegistry - Integration Tests", function () {
         "ExampleNftCollectionStats",
         "FilecoinDealStatus",
         "GasPriceOracle",
+        "HistoricalGasPrice",
         "InflationData",
         "LeagueDAO",
         "LegacyRequest",

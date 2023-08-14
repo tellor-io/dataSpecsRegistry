@@ -35,7 +35,7 @@ describe("DataSpecsRegistry - Function Tests", function () {
         "ExampleFantasyFootball",
         "ExampleNftCollectionStats",
         "FilecoinDealStatus",
-        "GasPriceOracle",
+        "HistoricalGasPrice",
         "InflationData",
         "LeagueDAO",
         "LegacyRequest",
