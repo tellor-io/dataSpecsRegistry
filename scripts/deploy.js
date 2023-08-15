@@ -4,16 +4,15 @@ require("@nomiclabs/hardhat-waffle");
 require("dotenv").config();
 const web3 = require('web3');
 
-//npx hardhat run scripts/deploy.js --network sepolia
-//npx hardhat run scripts/deploy.js --network mainnet
+//npx hardhat run scripts/deploy.js --network polygon
 
-var tellorMaster = '0xE3322702BEdaaEd36CdDAb233360B939775ae5f1' // mainnet
-var tellorAddress = '0xD9157453E2668B2fc45b7A803D3FEF3642430cC0' // mainnet
-var teamMultisigAddress = '0xa3fe6d88f2ea92be357663ba9e747301e4cfc39B' // mainnet
-var reservedOwner = "0xa3fe6d88f2ea92be357663ba9e747301e4cfc39B" // multisig address
+var token = '0xE3322702BEdaaEd36CdDAb233360B939775ae5f1' // polygon
+var tellorAddress = '0xD9157453E2668B2fc45b7A803D3FEF3642430cC0' // polygon
+var teamMultisigAddress = '0xa3fe6d88f2ea92be357663ba9e747301e4cfc39B' // polygon
+var reservedOwner = "0x4d303B4F20d55B9D0eA269B45AB5610abAf53E09" // eoa address
 var registrationPricePerYear = web3.utils.toWei("1000") // 1000 USD
 
-async function deployRegistry(_network, _pk, _nodeURL, _tellorMaster,  _oracle, _teamMultisig, _reservedOwner, _registrationPricePerYear) {
+async function deployRegistry(_network, _pk, _nodeURL, _token,  _oracle, _teamMultisig, _reservedOwner, _registrationPricePerYear) {
     console.log("deploy dataspecs registry")
     await run("compile")
 
@@ -29,7 +28,7 @@ async function deployRegistry(_network, _pk, _nodeURL, _tellorMaster,  _oracle, 
     const Registry = await ethers.getContractFactory("contracts/DataSpecsRegistry.sol:DataSpecsRegistry", wallet)
     const registrywithsigner = await Registry.connect(wallet)
     _feeData = {"gasPrice":100000000000}
-    const registry = await registrywithsigner.deploy(_tellorMaster, _oracle, _teamMultisig, _reservedOwner, _registrationPricePerYear, _feeData)
+    const registry = await registrywithsigner.deploy(_token, _oracle, _teamMultisig, _reservedOwner, _registrationPricePerYear, _feeData)
     await registry.deployed();
 
     if (net == "mainnet"){
@@ -55,14 +54,14 @@ async function deployRegistry(_network, _pk, _nodeURL, _tellorMaster,  _oracle, 
     // Wait for few confirmed transactions.
     // Otherwise the etherscan api doesn't find the deployed contract.
     console.log('waiting for DataSpecsRegistry tx confirmation...');
-    await registry.deployTransaction.wait(7)
+    await registry.deployTransaction.wait(10)
 
     console.log('submitting DataSpecsRegistry contract for verification...');
 
     await run("verify:verify",
         {
             address: registry.address,
-            constructorArguments: [_tellorMaster, _oracle, _teamMultisig, _reservedOwner, _registrationPricePerYear]
+            constructorArguments: [_token, _oracle, _teamMultisig, _reservedOwner, _registrationPricePerYear]
         },
     )
 
@@ -70,7 +69,7 @@ async function deployRegistry(_network, _pk, _nodeURL, _tellorMaster,  _oracle, 
 
 }
 
-deployRegistry("polygon", process.env.MAINNET_PK, process.env.NODE_URL_POLYGON, tellorMaster, tellorAddress, teamMultisigAddress, reservedOwner, registrationPricePerYear)
+deployRegistry("polygon", process.env.MAINNET_PK, process.env.NODE_URL_POLYGON, token, tellorAddress, teamMultisigAddress, reservedOwner, registrationPricePerYear)
     .then(() => process.exit(0))
     .catch(error => {
         console.error(error);
