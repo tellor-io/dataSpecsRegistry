@@ -6,83 +6,9 @@ const web3 = require('web3');
 
 //npx hardhat run scripts/setInitialHashes.js --network polygon
 
-var registryAddress = '' 
-
-const reservedQueryStrings = [
-    "AmpleforthCustomSpotPrice",
-    "AmpleforthUSPCE",
-    "AutopayAddresses",
-    "ChatGPTResponse",
-    "ComboQuery",
-    "CrossChainBalance",
-    "CustomPrice",
-    "DIVAProtocol",
-    "DailyVolatility",
-    "EVMCall",
-    "EVMHeader",
-    "EVMHeaderslist",
-    "ExampleFantasyFootball",
-    "ExampleNftCollectionStats",
-    "FilecoinDealStatus",
-    "GasPriceOracle",
-    "InflationData",
-    "LeagueDAO",
-    "LegacyRequest",
-    "LendingPairToxicity",
-    "MimicryCollectionStat",
-    "MimicryMacroMarketMashup",
-    "MimicryNFTMarketIndex",
-    "Morphware",
-    "NumericApiResponse",
-    "Snapshot",
-    "SpotPrice",
-    "StringQuery",
-    "TWAP",
-    "TellorKpr",
-    "TellorOracleAddress",
-    "TellorRNG",
-    "TracerFinance",
-    "TwitterContestV1"
-];
+var registryAddress = '0x06Be23ea84148a5E439dFe2A0bcCE441ea74E2D6' 
 
 // see: https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/
-var urls = [
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreic4nwrqanfhtslypnueevdine3w4uqxudjsfukimfc5xi4gpplwrq?filename=AmpleforthCustomSpotPrice.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreifqnc55qb6rvhfsscafbw5dcnvgs4gjhjeohyexzwmiux7fzyyu64?filename=AmpleforthUSPCE.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreig5war63asrzl6vygpqj3gca7nqcntxzoy4lxvu2wqtmwwxlqwzau?filename=AutopayAddresses.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreiheig4ajw33gc4izeylgxfaqggr3rhaar2dc6jzxvomnt74ywmyfa?filename=ChatGPTResponse.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreihy55cafnpjzajwicvztbwwzzybb7eh4ra23orizjmebgenvml2fe?filename=ComboQuery.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreief5fsf7t4mnsuli4sxiwtrustcpcu7sk2bigljky6gfrr62jgtka?filename=CrossChainBalance.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreich3nlh5b4e7xhrodkt5wotqktcv5hu7qn6yl2ifrpfdpfid5q2ka?filename=CustomPrice.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreihidum7eqni3sln5jt26wwyloa5rndnisxwnr3cucz6phh4cfio6m?filename=DIVAProtocol.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreih6hcijia7zo5s7lbdykqek3pxtwskymbghloreulsqrs4ajzqbxu?filename=DailyVolatility.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreigwybi7dhg6vihysqtm24vvyjmeolhao4pzx7vbdvrv5l2pbdupwq?filename=EVMCall.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreicj37ikrmjcrzvo6vdxc7g6xbte4hsoyjscd6jfvdhunujd36oj4y?filename=EVMHeader.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreicnesk22rhc6wjgcd4dvuk4qfm7bbcxnlnc3bjskduoq3ifx54ode?filename=EVMHeaderslist.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreie6omzz7oc4cd3sgo7muekt2dvlkupdyq6m6zgrqc5aqtnsiiv7wu?filename=ExampleFantasyFootball.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreia2p7ntf5pd3biiobvoc6rnw4n5vrguky7utcf7fqtxghecc7odr4?filename=ExampleNftCollectionStats.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreibtqmtmrx7ovzam3mupb2gjzfomhifkimuoro5x6s7ssyccnzijau?filename=FilecoinDealStatus.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreihaeplwcpxeuq7bljpv6u3bv7dnwu7b4sjs3hskbg6gvprwpglliq?filename=HistoricalGasPrice.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreia6ho23owl6ciccnamq6t7sruvj6fjury7ou676bog26zdls47hdy?filename=InflationData.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreigg4yjz5u7ibcev3zdwczy3nzzcjojvxgrqy3eny7b5qqvol7hylq?filename=LeagueDAO.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreieemk5pxe2jfwaebg7kb2xdhd5qqipewiod7ics57kuqj6uot2vyy?filename=LegacyRequest.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreiao3k56urrjlmxiacrnrfqefqbxxalzti7y5wyu55eaqp5o3mbe3u?filename=LendingPairToxicity.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreiek7nk2qnujnxwtarjmni3jjoxbgjuwwqbzp624mhcwamu5dlg5n4?filename=MimicryCollectionStat.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreibay2uo4tnahcoqhvwbwgvrbau6ivvq7ngxfzsyypykhf3m77abkm?filename=MimicryMacroMarketMashup.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreih4ojgo2h6me3s3iboejgsb2wgddryldbml4tdam224qxburvic2a?filename=MimicryNFTMarketIndex.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreidynsby7yij66hxtrxad54zbz6j6xryqeq7vmyh34v6ye47vlltye?filename=Morphware.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreiatchi6doztyp3rze5d24w2w4n7diqkecrkfps452tjbqgcmtaqh4?filename=NumericApiResponse.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreift3amiam3smai4uz2v3eodfaw47ionxdqoz4t2rvqrhvlxrrwgli?filename=Snapshot.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreiflue3v5doc23c34njzy27wteyuc43m5l5fu6jrlvans6gth2mnni?filename=SpotPrice.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreie4l5nfqpsivjpqyiryo5s2zohyudonzuiiuz5p4it3s7sk2is4pu?filename=StringQuery.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreiakyftidgby3xqv7mgokccqcaljwcgg27fhfgpaxi644sodgkzgfq?filename=TWAP.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreiezyznjupa76rx5clh2np5cjsl3p5rydqxz7f3dkmacx4khzlotda?filename=TellorKpr.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreiabnob2g6a63gjgiissxpirj5oyppqzwjkn4sqoed4xdzt4dyttj4?filename=TellorOracleAddress.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreibno34e5vklsc4ubyz6q7py6afhjnyz3eti6azicxdj5qmzxnvwva?filename=TellorRNG.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreiaqjbbkrlyezbjxy5onq4lhavrqbwg3tn7nv4yjpizsokrwiy6soa?filename=TracerFinance.md",
-    "https://bafybeif3kaoazzfne7si4brwpej4hpunv3b7r63jyvw5rtid7b7t6zxuca.ipfs.nftstorage.link/ipfs/bafkreihfroth2zx7osw6thkefio6cxr4xqbkxtped65emrmgwvlckszdca?filename=TwitterContestV1.md"
-]
-
 var hashes = [
     { name: "AmpleforthCustomSpotPrice", dochash: "ipfs://bafkreic4nwrqanfhtslypnueevdine3w4uqxudjsfukimfc5xi4gpplwrq" },
     { name: "AmpleforthUSPCE", dochash: "ipfs://bafkreifqnc55qb6rvhfsscafbw5dcnvgs4gjhjeohyexzwmiux7fzyyu64" },
@@ -99,7 +25,7 @@ var hashes = [
     { name: "ExampleFantasyFootball", dochash: "ipfs://bafkreie6omzz7oc4cd3sgo7muekt2dvlkupdyq6m6zgrqc5aqtnsiiv7wu" },
     { name: "ExampleNftCollectionStats", dochash: "ipfs://bafkreia2p7ntf5pd3biiobvoc6rnw4n5vrguky7utcf7fqtxghecc7odr4" },
     { name: "FilecoinDealStatus", dochash: "ipfs://bafkreibtqmtmrx7ovzam3mupb2gjzfomhifkimuoro5x6s7ssyccnzijau" },
-    { name: "GasPriceOracle", dochash: "ipfs://bafkreihaeplwcpxeuq7bljpv6u3bv7dnwu7b4sjs3hskbg6gvprwpglliq"},
+    { name: "HistoricalGasPrice", dochash: "ipfs://bafkreihaeplwcpxeuq7bljpv6u3bv7dnwu7b4sjs3hskbg6gvprwpglliq"},
     { name: "InflationData", dochash: "ipfs://bafkreia6ho23owl6ciccnamq6t7sruvj6fjury7ou676bog26zdls47hdy" },
     { name: "LeagueDAO", dochash: "ipfs://bafkreigg4yjz5u7ibcev3zdwczy3nzzcjojvxgrqy3eny7b5qqvol7hylq" },
     { name: "LegacyRequest", dochash: "ipfs://bafkreieemk5pxe2jfwaebg7kb2xdhd5qqipewiod7ics57kuqj6uot2vyy" },
@@ -139,13 +65,15 @@ async function setReservedHashes(_network, _pk, _nodeURL, _registryAddress, _has
     _feeData = {"gasPrice":100000000000}
     for (var i = 0; i < _hashes.length; i++) {
         console.log("\nsetting hash for " + _hashes[i].name + " to " + _hashes[i].dochash)
-        _tx = await registry.setDocumentHash(_hashes[i].name, _hashes[i].dochash)
+        _tx = await registry.setDocumentHash(_hashes[i].name, _hashes[i].dochash, _feeData)
         // print tx hash
         if (net == "polygon") {
             console.log("tx hash: " + "https://polygonscan.com/tx/" + _tx.hash)
         } else {
             console.log("tx hash: " + _tx.hash)
         }
+        // wait for tx to be mined
+        await _tx.wait()
     }
 
     console.log("done")
